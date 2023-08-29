@@ -13,9 +13,7 @@ J=2
 L=int(sys.argv[1])
 T=float(sys.argv[2])
 e=int(sys.argv[3])
-#T1=0.2#float(sys.argv[3])
-#T2=3#float(sys.argv[4])
-#T_N=6#int(sys.argv[5])
+
 Lx=L
 Ly=2*L
 N_sites=Lx*Ly
@@ -62,25 +60,22 @@ def ord_param(state_arr):
 def MC_update(state_arr,E,T): 
     beta=1/T
 
-    #state_arr=np.ones(N_sites)
-    #beta=1/T #k_B=1
     i1=np.random.randint(N_sites) #site chosen
-    i2=np.random.randint(4) #neighbour chosen
-    r=np.random.random()
-    delE=0
-    for k in range(4):
-    	delE=delE+state_arr[nbrarr[i1][k]]
-    for k in range(4):
-        delE=delE-state_arr[nbrarr[nbrarr[i1][i2]][k]]
     
-    delE=2*J*(delE+1)
-    
-    if (state_arr[i1]==1 and state_arr[nbrarr[i1][i2]]==0) and (delE<0 or r<np.exp(-beta*delE)):
-        #m=m-2*state_arr[i]/N_sites
-        E=E+delE
-        state_arr[i1]=0
-        state_arr[nbrarr[i1][i2]]=1
-    return E
+    if state_arr[i1]==1:
+        i2=np.random.randint(4)
+        if state_arr[nbrarr[i1][i2]]==0:
+            delE=0
+            for k in range(4):
+                delE=delE+state_arr[nbrarr[i1][k]]
+            for k in range(4):
+                delE=delE-state_arr[nbrarr[nbrarr[i1][i2]][k]]
+            delE=2*J*(delE+1)
+            if (delE<=0 or np.random.random()<np.exp(-beta*delE)):
+                E+=delE
+                state_arr[i1]=0
+                state_arr[nbrarr[i1][i2]]=1
+    return E  
 
 @jit(nopython=True)
 def H(state_arr):
@@ -114,29 +109,30 @@ def get_data(T):
     m2_mean=0
     m4_mean=0
     
-    for i in range(Trlax*N_sites-1):
+    for i in range(Trlax*N_sites):
         E=MC_update(state_arr,E,T)
     
     #return state_arr
     
-    for i in range(N_steps*N_sites):
-        E=MC_update(state_arr,E,T)
+    for i in range(N_steps):
+        for j in range(N_sites):
+            E=MC_update(state_arr,E,T)
         m=ord_param(state_arr)
         m_mean+=m
         m2_mean+=m*m
         m4_mean+=m*m*m*m
  
-    return m_mean/(N_steps*N_sites),m2_mean/(N_steps*N_sites),m4_mean/(N_steps*N_sites)
+    return m_mean/(N_steps),m2_mean/(N_steps),m4_mean/(N_steps)
     
 
-state_arr=get_data(T)
+data_T=get_data(T)
 end = time.time()
 
 
 #plt.imshow(state_arr.reshape(Lx,Ly))
 #plt.show()
 
-data_T=get_data(T)
+#data_T=get_data(T)
 np.savetxt(f'data_{T}.csv',data_T,delimiter=',')
 
 
