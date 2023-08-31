@@ -67,9 +67,7 @@ def MC_update(state_arr,E,T):
         if state_arr[nbrarr[i1][i2]]==0:
             delE=0
             for k in range(4):
-                delE=delE+state_arr[nbrarr[i1][k]]
-            for k in range(4):
-                delE=delE-state_arr[nbrarr[nbrarr[i1][i2]][k]]
+                delE=delE+state_arr[nbrarr[i1][k]]-state_arr[nbrarr[nbrarr[i1][i2]][k]]
             delE=2*J*(delE+1)
             if (delE<=0 or np.random.random()<np.exp(-beta*delE)):
                 E+=delE
@@ -99,7 +97,7 @@ def get_data(T):
     #state_arr=np.array((L*[1]+L*[0])*L)
     #np.savetxt(datafile,state_arr)
 
-    Trlax=10000000
+    Trlax=N_sites**4
     
     E=H(state_arr)
     #E_mean=0
